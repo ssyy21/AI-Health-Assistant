@@ -108,34 +108,49 @@ async def handle_message_async(prompt, model, words, classes, data):
     return response
 
 @st.cache_resource(show_spinner=False)
+# def initialize_model_and_data():
+#     data = load_intents('intents.json')
+#     words, classes, documents = [], [], []
+#     for intent in data['intents']:
+#         for pattern in intent['patterns']:
+#             word_list = simple_tokenize(pattern)
+#             words.extend(word_list)
+#             documents.append((word_list, intent['tag']))
+#             if intent['tag'] not in classes:
+#                 classes.append(intent['tag'])
+
+#     words = sorted(list(set([simple_lemmatize(word) for word in words])))
+#     classes = sorted(list(set(classes)))
+
+#     training = []
+#     output_empty = [0] * len(classes)
+#     for document in documents:
+#         bag = [1 if word in document[0] else 0 for word in words]
+#         output_row = list(output_empty)
+#         output_row[classes.index(document[1])] = 1
+#         training.append([bag, output_row])
+
+#     random.shuffle(training)
+#     training = np.array(training, dtype=object)
+#     train_x, train_y = list(training[:, 0]), list(training[:, 1])
+
+#     model = create_and_train_model(train_x, train_y)
+#     return model, words, classes, data
+
+# Adding the correct code
+@st.cache_resource(show_spinner=False)
 def initialize_model_and_data():
-    data = load_intents('intents.json')
-    words, classes, documents = [], [], []
-    for intent in data['intents']:
-        for pattern in intent['patterns']:
-            word_list = simple_tokenize(pattern)
-            words.extend(word_list)
-            documents.append((word_list, intent['tag']))
-            if intent['tag'] not in classes:
-                classes.append(intent['tag'])
+    import pickle
+    from tensorflow.keras.models import load_model
 
-    words = sorted(list(set([simple_lemmatize(word) for word in words])))
-    classes = sorted(list(set(classes)))
+    model = load_model("model.h5")
+    words = pickle.load(open("words.pkl", "rb"))
+    classes = pickle.load(open("classes.pkl", "rb"))
 
-    training = []
-    output_empty = [0] * len(classes)
-    for document in documents:
-        bag = [1 if word in document[0] else 0 for word in words]
-        output_row = list(output_empty)
-        output_row[classes.index(document[1])] = 1
-        training.append([bag, output_row])
+    data = load_intents("intents.json")
 
-    random.shuffle(training)
-    training = np.array(training, dtype=object)
-    train_x, train_y = list(training[:, 0]), list(training[:, 1])
-
-    model = create_and_train_model(train_x, train_y)
     return model, words, classes, data
+
 
 # 👇 Main UI with new theme
 async def main():
